@@ -1,0 +1,134 @@
+项目搭建
+1.将【测试环境】代码库拉取到本地
+
+git clone http://gitlab.sit.cmft.com/wujj/fitportal-user-docs.git
+2.添加需要合并的【生产环境】远程仓库
+
+git remote add base http://gitlab.cmft.com/cloud/fitportal-user-docs.git
+将base作为远程仓库，添加到本地仓库(origin)中，设置别名为base(自定义，用于方便区分仓库名）
+
+3.把base远程仓库中数据抓取到本地仓库
+
+git fetch base
+4.拉取并新建base远程仓库分支
+
+git checkout -b develop base/develop
+5.切换测试环境仓库分支，安装依赖
+
+git checkout master
+npm install
+6.启动本地测试
+
+npm run docs:dev
+新增文档
+方式一
+1.在docs文件夹下直接新建具有文档描述名称的文件夹，例如aDemo
+
+2.在aDemo文件夹下，新建用于存放图片的文件夹images(可自定义，注意引用时路径)
+
+3.在aDemo文件夹下，新建名为manual.md的markdown文件，作为具体的新增文档，由于涉及不同跳转场景，该名称【不】可自定义
+
+方式二
+在docs文件夹下除.vuepress文件夹以外的已存在的文件夹下面新增文件夹
+
+其他步骤同上，注意配置侧边栏菜单时的路径
+
+md文档书写规则
+锚点获取规则
+通过在md文件开头配置front matter定义锚点获取规则
+
+sidebarDepth	设置标题获取深度，深度为2，它将同时提取 h2 和 h3 标题；深度是 1，它将提取到 h2 的标题；设置成0，则不提取任何标题，侧边栏菜单不显示。默认为2
+ancherShow	设置为true，则显示悬浮菜单，不显示侧边栏菜单；默认为false
+ancherLevel	配置标题提取规则，在ancherShow为true的情况下生效。设置值为h2，仅提取h2标题；设置值为h3，仅提取h3标题；设置值为h2，h3，则同时提取h2，h3标题
+1.一个'#'号设置的标题不作为链接标题被提取，所以在编写md时以'##'或者'###'开始写标题
+
+2.如果不设置front matter，默认提取h2，h3两级菜单(用'##' 和'###'定义的菜单)，显示侧边栏菜单
+
+3.如果不设置front matter，且不存在h2级别的标题，侧边栏菜单不显示，默认从h2开始提取标题
+
+4.如果front matter仅设置ancherShow，则悬浮菜单标题根据sidebarDepth规则提取
+
+5.如果front matter设置ancherShow为true的同时设置了ancherLevel，sidebarDepth失效
+
+图片引用
+因为新增文档时，存放图片的文件夹与md文件同级，所以在引入图片时，如下：
+
+![](./images/1.png)
+中间路径名与存放图片文件夹同名
+
+配置侧边栏
+1.打开docs/.vuepress文件夹下的config.js
+
+2.找到themeConfig配置项底下的sidebar配置项，即可配置侧边栏菜单
+
+3.如果只是在已有一级菜单下新增，则找到一级菜单所在项，在其children属性中新增数组
+
+数组由两个值组成，第一个值为md文件所在路径，第二个值为侧边栏名称
+
+4.如果需要新增一级菜单，则在sidebar数组中，添加对象
+
+title属性为一级菜单名称，children属性配置同上
+
+collapsable属性设置为true，表示该级侧边栏默认折叠
+
+5.ctrl+c 可以停止正在运行的本地测试，重启本地测试，刷新页面即可看到刚刚新增的文档
+
+关于config.js文件
+此文件用于整个帮助文档项目的配置，所以日常除了更改sidebar的内容外
+
+其他配置项请保持默认，不要随意改动
+
+关于注释的配置项说明：
+
+repo:将会自动在每个页面的导航栏生成生成一个 GitHub 链接，
+
+以及在页面的底部生成一个可编辑此页的链接
+
+editLinks:配置是否禁用上述的‘可编辑此页’链接
+
+editLinkText:配置‘可编辑此页’链接显示的文本
+
+以上三个配置项由于目前互联网门户与内网门户尚无法保持一致的体验
+
+故将配置做注释处理
+
+部署
+1.部署到sit和dev测试环境
+
+如果当前代码库权限为master,则可以直接向master分支push代码
+
+git add .
+git commit -m '本次提交内容描述'
+git push
+sit和dev环境会根据代码更新自动部署
+
+如果当前代码库权限为developer,且当前更改处于master分支
+
+则先将当前更改新建分支branchname (新建分支名，可自定义)，并将该本地分支推送到远端
+
+git checkout –b branchname  //创建并切换到本地分支branchname
+git push origin branchname:branchname 
+//推送本地的branchnam(冒号前面的)分支到远程origin的branchname(冒号后面的)分支(远程若没有会自动创建)
+打开远程仓库页面http://gitlab.sit.cmft.com/wujj/fitportal-user-docs
+
+切换到branchname分支
+
+点击右上角‘create merge request’蓝色按钮提交合并分支的请求
+
+提交审核通过后，代码会自动合并进入master分支，sit和dev环境会根据master分支代码更新自动部署
+
+待页面更新测试没有问题后，请及时删除刚刚推送到远端的 branchname分支
+
+git push origin –d branchname
+2.将代码推到【生产环境】远程仓库develop分支
+
+git checkout develop
+git merge master
+git add .
+git commit -m '本次提交内容描述'
+git push
+develop分支推送没有权限限制，所以请在推送后及时到代码库页面查看是否推送成功
+
+http://gitlab.cmft.com/cloud/fitportal-user-docs/tree/develop
+
+上线时，相关工作人员会将develop分支代码合并到master分支进行上线
